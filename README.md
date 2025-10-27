@@ -1,2 +1,2 @@
 # the-shape-of-reflation
-More non-parametric Bayesian models for market dynamics. 
+Blog: https://regimelab.substack.com/p/the-shape-of-reflation
