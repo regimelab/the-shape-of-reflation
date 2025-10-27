@@ -6,10 +6,10 @@ from sklearn.decomposition import PCA
 from scipy.stats import zscore
 import seaborn as sns
 
-API_KEY = "Sd12XrveOEPnEHtnB_u7AXvLb_ZPpajx"
+API_KEY = ""
 TICKERS = ["SPY", "USO", "GLD", "TLT"]
 
-def eigenports(rets, num_components=3):
+def eigenports(rets, num_components=4):
   '''
   reduce dimensionality via PCA
   generate orthonormal investment Universes (principal Eigenportfolios)
@@ -30,15 +30,15 @@ def eigenports(rets, num_components=3):
 
   return eigenvecs, pca, components
 
-def fetch_hourly_returns(ticker, lookback_days=18):
+def fetch_hourly_returns(ticker):
     client = RESTClient(API_KEY)
-    from_date = str((np.datetime64('2025-09-19'))) #- np.timedelta64(lookback_days, 'D')))
+    from_date = str((np.datetime64('2025-10-19'))) 
     bars = client.list_aggs(
         ticker=ticker,
         multiplier=1,
         timespan="hour",
         from_=from_date,
-        to=str(np.datetime64('2025-09-25')),
+        to=str(np.datetime64('2025-10-24')),
         limit=9999
     )
     closes = np.array([bar.close for bar in bars])
@@ -66,37 +66,16 @@ eigenvectors_long_only = np.abs(eigenvectors)
 eigenvectors_long_only /= eigenvectors_long_only.sum(axis=1, keepdims=True)
 
 np.set_printoptions(precision=3, suppress=True)
-print("Top 3 Eigenportfolio Weights (Long-Only Normalized):")
-for i in range(min(3, len(TICKERS))):
+print("Top 4 Eigenportfolio Weights (Long-Only Normalized):")
+for i in range(min(4, len(TICKERS))):
     print(f"Eigenportfolio {i+1}: {eigenvectors_long_only[i]}")
 
-# 3D arrow visualization of top 3 eigenportfolios
-fig = plt.figure(figsize=(10, 8))
-ax = fig.add_subplot(111, projection='3d')
-colors = ['r', 'g', 'b']
-for i in range(min(3, len(components))):
-    vec = components[i]
-    ax.quiver(0, 0, 0,
-              vec[0],
-              vec[1] if len(vec) > 1 else 0,
-              vec[2] if len(vec) > 2 else 0,
-              color=colors[i % len(colors)],
-              length=1, normalize=True, label=f"Eigenportfolio {i+1}")
-ax.set_xlim([-1, 1])
-ax.set_ylim([-1, 1])
-ax.set_zlim([-1, 1])
-ax.set_xlabel("PC1")
-ax.set_ylabel("PC2")
-ax.set_zlabel("PC3")
-ax.set_title("Top 3 PCA Eigenportfolios as Arrows in Asset Space")
-ax.legend()
-plt.show()
-
 # Portfolio returns and plotting cumulative returns
+colors = ['r', 'g', 'b']
 returns_array = returns_matrix.values if hasattr(returns_matrix, "values") else returns_matrix
 portfolio_growth = returns_array @ eigenvectors_long_only.T
 plt.figure(figsize=(12, 6))
-for i in range(min(3, portfolio_growth.shape[1])):
+for i in range(min(4, portfolio_growth.shape[1])):
     cum_returns = np.cumsum(np.sort(portfolio_growth[:, i]))
     plt.plot(cum_returns, colors[i % len(colors)],
              label=f"Eigenportfolio {i+1}")
